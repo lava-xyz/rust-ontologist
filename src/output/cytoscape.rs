@@ -99,7 +99,7 @@ fn gen_package(elements: &mut Vec<Element>, package: Package) {
 
     elements.push(Element {
         data: Data::new_vertex(&package.name, &package.name, ""),
-        classes: "l".to_owned(),
+        classes: "l-package".to_owned(),
     });
 
     for crate_ in &package.crates {

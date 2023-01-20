@@ -1,3 +1,4 @@
+use displaydoc::Display;
 use serde::Serialize;
 
 use crate::ir::{Mod, Package};
@@ -63,14 +64,60 @@ impl Data {
     }
 }
 
+struct Ctx {
+    elements: Vec<Element>,
+    color_gen: ColorGenerator,
+}
+
+#[derive(Default)]
+struct ColorGenerator {
+    current: EdgeColor,
+    i: usize,
+}
+
+#[derive(Default, Clone, Copy, Display)]
+enum EdgeColor {
+    /// red
+    #[default]
+    Red,
+    /// green
+    Green,
+    /// blue
+    Blue,
+    /// violet
+    Violet,
+    /// orange
+    Orange,
+    /// purple
+    Purple,
+    /// plum
+    Plum,
+}
+
+impl ColorGenerator {
+    fn update(&mut self) {
+        use EdgeColor::*;
+        self.current = match self.i % 7 {
+            0 => Red,
+            1 => Green,
+            2 => Blue,
+            3 => Violet,
+            4 => Orange,
+            5 => Purple,
+            _ => Plum,
+        };
+        self.i += 1;
+    }
+}
+
 pub fn from_ir(packages: impl Iterator<Item = Package>) -> Repr {
-    let mut elements = vec![];
+    let mut ctx = Ctx { elements: vec![], color_gen: Default::default() };
 
     for package in packages {
-        gen_package(&mut elements, package);
+        gen_package(&mut ctx, package);
     }
 
-    Repr { elements: remove_invalid_edges(&elements) }
+    Repr { elements: remove_invalid_edges(&ctx.elements) }
 }
 
 // Removes edges that point to non-existent vertices. This might happen if the
@@ -93,13 +140,13 @@ fn remove_invalid_edges(elements: &[Element]) -> Vec<Element> {
         .collect()
 }
 
-fn gen_package(elements: &mut Vec<Element>, package: Package) {
+fn gen_package(ctx: &mut Ctx, package: Package) {
     let package_name = &package.name;
     log::trace!("Generating package {package_name}.");
 
-    elements.push(Element {
+    ctx.elements.push(Element {
         data: Data::new_vertex(&package.name, &package.name, ""),
-        classes: "l-package".to_owned(),
+        classes: "vertex-package".to_owned(),
     });
 
     for crate_ in &package.crates {
@@ -107,84 +154,79 @@ fn gen_package(elements: &mut Vec<Element>, package: Package) {
         log::trace!("Generating crate {crate_name}.");
 
         let crate_id = format!("{package_name}::{crate_name}");
-        gen_vertex(elements, "crate", crate_name, package_name);
-        gen_module(elements, crate_, &crate_id);
+        gen_vertex(ctx, "crate", crate_name, package_name);
+        gen_module(ctx, crate_, &crate_id);
+        ctx.color_gen.update();
+        log::trace!("{} for {}", ctx.color_gen.current, crate_id);
     }
 }
 
-fn gen_module(elements: &mut Vec<Element>, module: &Mod, parent: &str) {
+fn gen_module(ctx: &mut Ctx, module: &Mod, parent: &str) {
     for item in &module.items.mods {
         let name = &item.name;
-        gen_vertex(elements, "mod", name, parent);
-        gen_module(elements, item, &format!("{parent}::{name}"));
+        gen_vertex(ctx, "mod", name, parent);
+        gen_module(ctx, item, &format!("{parent}::{name}"));
     }
     for item in &module.items.consts {
         let name = &item.name;
-        gen_vertex(elements, "const", name, parent);
+        gen_vertex(ctx, "const", name, parent);
     }
     for item in &module.items.enums {
         let name = &item.name;
-        gen_vertex(elements, "enum", name, parent);
+        gen_vertex(ctx, "enum", name, parent);
     }
     for item in &module.items.fns {
         let name = &item.name;
-        gen_vertex(elements, "fn", name, parent);
+        gen_vertex(ctx, "fn", name, parent);
     }
     for item in &module.items.statics {
         let name = &item.name;
-        gen_vertex(elements, "static", name, parent);
+        gen_vertex(ctx, "static", name, parent);
     }
     for item in &module.items.structs {
         let name = &item.name;
-        gen_vertex(elements, "struct", name, parent);
+        gen_vertex(ctx, "struct", name, parent);
     }
     for item in &module.items.traits {
         let name = &item.name;
-        gen_vertex(elements, "trait", name, parent);
+        gen_vertex(ctx, "trait", name, parent);
     }
     for item in &module.items.trait_aliases {
         let name = &item.name;
-        gen_vertex(elements, "trait", name, parent);
+        gen_vertex(ctx, "trait", name, parent);
     }
     for item in &module.items.types {
         let name = &item.name;
-        gen_vertex(elements, "type", name, parent);
+        gen_vertex(ctx, "type", name, parent);
     }
     for item in &module.items.unions {
         let name = &item.name;
-        gen_vertex(elements, "union", name, parent);
+        gen_vertex(ctx, "union", name, parent);
     }
     for dep in &module.deps {
-        gen_edge(elements, parent, dep);
+        gen_edge(ctx, parent, dep);
     }
     // TODO: uses.
 }
 
-fn gen_vertex(
-    elements: &mut Vec<Element>,
-    name_prefix: &str,
-    name: impl Into<String>,
-    parent: impl Into<String>,
-) {
+fn gen_vertex(ctx: &mut Ctx, kind: &str, name: impl Into<String>, parent: impl Into<String>) {
     let name = name.into();
     let parent = parent.into();
 
-    elements.push(Element {
-        data: Data::new_vertex(
-            format!("{parent}::{name}"),
-            format!("{name_prefix} {name}"),
-            parent,
-        ),
-        classes: "l".to_owned(),
+    ctx.elements.push(Element {
+        data: Data::new_vertex(format!("{parent}::{name}"), format!("{kind} {name}"), parent),
+        classes: format!("vertex-{kind} vertex-non-package"),
     });
 }
 
-fn gen_edge(elements: &mut Vec<Element>, source: impl Into<String>, target: impl Into<String>) {
+fn gen_edge(ctx: &mut Ctx, source: impl Into<String>, target: impl Into<String>) {
     let source = source.into();
     let target = target.into();
 
-    elements.push(Element {
+    let color = ctx.color_gen.current;
+
+    ctx.elements.push(Element {
         data: Data::new_edge(format!("{source}-{target}"), source, target),
-        classes: "l".to_owned(),
+        classes: format!("edge-{color}"),
     });
 }

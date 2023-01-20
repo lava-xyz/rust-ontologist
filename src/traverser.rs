@@ -16,25 +16,29 @@ use crate::{
 
 // A context for traversing a module.
 #[derive(Clone)]
-struct Ctx {
-    // The current working directory.
-    dir: PathBuf,
-    // The module name under consideration.
-    module_name: String,
+struct Ctx<'a> {
+    // Command-line options.
+    args: &'a crate::cli::Args,
     // The name of the containing package.
     package_name: String,
     // The name of the containing crate.
     crate_name: String,
+    // The current working directory.
+    dir: PathBuf,
+    // The module name under consideration.
+    module_name: String,
 }
 
-impl Ctx {
+impl<'a> Ctx<'a> {
     fn new(
+        args: &'a crate::cli::Args,
         dir: impl Into<PathBuf>,
         module_name: impl Into<String>,
         package_name: impl Into<String>,
         crate_name: impl Into<String>,
     ) -> Self {
         Self {
+            args,
             dir: dir.into(),
             module_name: module_name.into(),
             package_name: package_name.into(),
@@ -43,11 +47,14 @@ impl Ctx {
     }
 }
 
-pub fn traverse(entry: &str, manifest: &Manifest) -> anyhow::Result<impl Iterator<Item = Package>> {
+pub fn traverse(
+    args: &crate::cli::Args,
+    manifest: &Manifest,
+) -> anyhow::Result<impl Iterator<Item = Package>> {
     let packages = manifest
-        .members(entry)?
+        .members(&args.proj)?
         .par_iter()
-        .filter_map(|member| match traverse_member(member) {
+        .filter_map(|member| match traverse_member(member, args) {
             Ok(package) => Some(package),
             Err(e) => {
                 let member_display = member.display();
@@ -62,7 +69,7 @@ pub fn traverse(entry: &str, manifest: &Manifest) -> anyhow::Result<impl Iterato
 }
 
 // Traverses a workspace member.
-fn traverse_member(member: &PathBuf) -> anyhow::Result<Package> {
+fn traverse_member(member: &PathBuf, args: &crate::cli::Args) -> anyhow::Result<Package> {
     let member_display = member.display();
     log::trace!("Traversing member {member_display}.");
 
@@ -77,7 +84,7 @@ fn traverse_member(member: &PathBuf) -> anyhow::Result<Package> {
     let crates = manifest
         .read_package_targets(&member)?
         .map(|target| {
-            let ctx = Ctx::new(&target.path, &target.name, &package_name, &target.name);
+            let ctx = Ctx::new(args, &target.path, &target.name, &package_name, &target.name);
             traverse_mod(&ctx)?
                 .ok_or_else(|| anyhow!("Failed to traverse workspace member {member_display}."))
         })
@@ -87,7 +94,7 @@ fn traverse_member(member: &PathBuf) -> anyhow::Result<Package> {
 }
 
 fn traverse_mod(ctx: &Ctx) -> anyhow::Result<Option<Mod>> {
-    let Ctx { dir, module_name, package_name, crate_name } = ctx;
+    let Ctx { args, dir, module_name, package_name, crate_name } = ctx;
     let (mut file, module_path) = match open_file(ctx) {
         Ok((file, module_path)) => (file, module_path),
         Err(e) => {
@@ -108,7 +115,7 @@ fn traverse_mod(ctx: &Ctx) -> anyhow::Result<Option<Mod>> {
     } else {
         dir.clone()
     };
-    let ctx = Ctx::new(dir, module_name, package_name, crate_name);
+    let ctx = Ctx::new(args, dir, module_name, package_name, crate_name);
 
     let mut module = Mod::new(module_name);
     traverse_item_vec(&ctx, &mut module.items, &mut module.deps, cst.items)?;
@@ -213,7 +220,9 @@ fn traverse_item(
         }
         syn::Item::Use(item) => {
             let item = syn::ItemUse { attrs: vec![], ..item };
-            deps.append(&mut traverse_item_use(ctx, &item)?);
+            if !ctx.args.disable_edges {
+                deps.append(&mut traverse_item_use(ctx, &item)?)
+            };
             acc.uses.push(Use { repr: item.pretty_print() });
         }
         _ => return Ok(()),

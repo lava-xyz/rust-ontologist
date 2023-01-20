@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="cytoscape.min.js"></script>
+    <script src="cytoscape-node-html-label.min.js"></script>
+
+    <script src="https://unpkg.com/klayjs@0.4.1/klay.js"></script>
+    <script src="cytoscape-klay.js"></script>
+
+    <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+    <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-layout-utilities/cytoscape-layout-utilities.js"></script>
+    <script src="cytoscape-fcose.js"></script> -->
+
+    <link href="cytoscape.js-navigator.css" rel="stylesheet" type="text/css" />
+    <script src="cytoscape-navigator.js"></script>
+</head>
+<style>
+    #cy {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+    }
+
+    .node-label {
+        color: red;
+        font-family: "monospace";
+    }
+</style>
+
+<body>
+    <div id="cy"></div>
+    <script type="module">
+        fetch("http://localhost:8080/codebase-dump.json", { cache: "no-store" })
+            .then((response) => response.json())
+            .then((graph) => {
+                var cy = cytoscape({
+                    container: document.getElementById("cy"),
+                    elements: graph,
+                    wheelSensitivity: 0.1,
+                    layout: {
+                        name: "klay",
+                        avoidOverlap: true,
+                        nodeDimensionsIncludeLabels: true
+                    },
+                    style: [
+                        {
+                            selector: "node",
+                            style: {
+                                label: "data(name)"
+                            }
+                        },
+                        {
+                            selector: "edge",
+                            style: {
+                                "curve-style": "unbundled-bezier",
+                                "line-color": "#9B2335",
+                                "line-cap": "round",
+                                "target-arrow-shape": "triangle",
+                                "target-arrow-color": "#9B2335"
+                            }
+                        },
+                        {
+                            selector: "node",
+                            style: {
+                                "font-family": "monospace"
+                            }
+                        },
+                    ]
+                });
+
+                var nav = cy.navigator({});
+
+                // cy.nodeHtmlLabel([{
+                //     query: ".l",
+                //     valign: "top",
+                //     halign: "center",
+                //     valignBox: "top",
+                //     halignBox: "center",
+                //     tpl: function (data) {
+                //         return "<span class='node-label'>" + data.id + "</span>";
+                //     }
+                // }]);
+            });
+    </script>
+</body>
+
+</html>

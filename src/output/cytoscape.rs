@@ -1,4 +1,6 @@
 use displaydoc::Display;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive as _;
 use serde::Serialize;
 
 use crate::ir::{Mod, Package};
@@ -75,7 +77,7 @@ struct ColorGenerator {
     i: usize,
 }
 
-#[derive(Default, Clone, Copy, Display)]
+#[derive(Default, Clone, Copy, Eq, PartialEq, Debug, Display, FromPrimitive)]
 enum EdgeColor {
     /// red
     #[default]
@@ -96,17 +98,11 @@ enum EdgeColor {
 
 impl ColorGenerator {
     fn update(&mut self) {
-        use EdgeColor::*;
-        self.current = match self.i % 7 {
-            0 => Red,
-            1 => Green,
-            2 => Blue,
-            3 => Violet,
-            4 => Orange,
-            5 => Purple,
-            _ => Plum,
-        };
         self.i += 1;
+        self.current = EdgeColor::from_usize(self.i).unwrap_or_else(|| {
+            self.i = 0;
+            EdgeColor::from_usize(0).unwrap()
+        });
     }
 }
 
@@ -151,13 +147,14 @@ fn gen_package(ctx: &mut Ctx, package: Package) {
 
     for crate_ in &package.crates {
         let crate_name = &crate_.name;
-        log::trace!("Generating crate {crate_name}.");
-
         let crate_id = format!("{package_name}::{crate_name}");
+
+        log::trace!("Generating crate {crate_name}.");
+        log::trace!("{} for {}", ctx.color_gen.current, crate_id);
+
         gen_vertex(ctx, "crate", crate_name, package_name);
         gen_module(ctx, crate_, &crate_id);
         ctx.color_gen.update();
-        log::trace!("{} for {}", ctx.color_gen.current, crate_id);
     }
 }
 
@@ -229,4 +226,34 @@ fn gen_edge(ctx: &mut Ctx, source: impl Into<String>, target: impl Into<String>)
         data: Data::new_edge(format!("{source}-{target}"), source, target),
         classes: format!("edge-{color}"),
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn color_gen() {
+        let mut gen = ColorGenerator::default();
+
+        assert_eq!(gen.current, EdgeColor::Red);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Green);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Blue);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Violet);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Orange);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Purple);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Plum);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Red);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Green);
+        gen.update();
+        assert_eq!(gen.current, EdgeColor::Blue);
+    }
 }

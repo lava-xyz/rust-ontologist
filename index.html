@@ -38,7 +38,7 @@
 <body>
     <div id="cy"></div>
     <script type="module">
-        fetch("http://localhost/codebase-dump.json", { cache: "no-store" })
+        fetch("codebase-dump.json", { cache: "no-store" })
             .then((response) => response.json())
             .then((graph) => {
                 var cy = cytoscape({

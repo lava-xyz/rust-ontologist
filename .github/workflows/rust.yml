@@ -26,4 +26,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: release
-        path: target/release/rust-ontologist
+        path: |
+          target/release/rust-ontologist
+          index.html

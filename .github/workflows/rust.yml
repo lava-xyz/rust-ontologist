@@ -25,5 +25,5 @@ jobs:
     - name: Upload the executable artifact
       uses: actions/upload-artifact@v3
       with:
-        name: upload-exec
+        name: release
         path: target/release/rust-ontologist

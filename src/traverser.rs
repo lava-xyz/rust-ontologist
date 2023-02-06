@@ -105,7 +105,7 @@ fn traverse_mod(ctx: &Ctx) -> anyhow::Result<Option<Mod>> {
             return Ok(None);
         }
     };
-    let cst = read_cst(&mut file)?;
+    let parse_tree = read_parse_tree(&mut file)?;
     drop(file);
 
     log::trace!("Traversing module {}.", module_path.display());
@@ -118,7 +118,7 @@ fn traverse_mod(ctx: &Ctx) -> anyhow::Result<Option<Mod>> {
     let ctx = Ctx::new(args, dir, module_name, package_name, crate_name);
 
     let mut module = Mod::new(module_name);
-    traverse_item_vec(&ctx, &mut module.items, &mut module.deps, cst.items)?;
+    traverse_item_vec(&ctx, &mut module.items, &mut module.deps, parse_tree.items)?;
     Ok(Some(module))
 }
 
@@ -137,10 +137,10 @@ fn open_file(Ctx { dir, module_name, .. }: &Ctx) -> anyhow::Result<(std::fs::Fil
     Ok((file, module_path))
 }
 
-fn read_cst(file: &mut std::fs::File) -> anyhow::Result<syn::File> {
+fn read_parse_tree(file: &mut std::fs::File) -> anyhow::Result<syn::File> {
     let content = std::io::read_to_string(file)?;
-    let cst = syn::parse_file(&content)?;
-    Ok(cst)
+    let parse_tree = syn::parse_file(&content)?;
+    Ok(parse_tree)
 }
 
 fn traverse_item_vec(

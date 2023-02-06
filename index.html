@@ -6,13 +6,29 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="cytoscape.min.js"></script>
+    <!--
+    Graph theory (network) library for visualisation and analysis:
+    https://js.cytoscape.org/
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
 
+    <!--
+    The Klay layout algorithm for Cytoscape.js:
+    https://github.com/cytoscape/cytoscape.js-klay
+    -->
     <script src="https://unpkg.com/klayjs@0.4.1/klay.js"></script>
-    <script src="cytoscape-klay.js"></script>
+    <script
+        src="https://raw.githubusercontent.com/cytoscape/cytoscape.js-klay/9fab410e4823268b5fcf877b1f5af2798dd98371/cytoscape-klay.js"></script>
 
-    <link href="cytoscape.js-navigator.css" rel="stylesheet" type="text/css" />
-    <script src="cytoscape-navigator.js"></script>
+    <!--
+    Bird's eye view pan and zoom control for Cytoscape.js:
+    https://github.com/cytoscape/cytoscape.js-navigator
+    -->
+    <link
+        href="https://raw.githubusercontent.com/cytoscape/cytoscape.js-navigator/a7507f067eb4c7f3c11ec298992ec0c578b8c175/cytoscape.js-navigator.css"
+        rel="stylesheet" type="text/css" />
+    <script
+        src="https://raw.githubusercontent.com/cytoscape/cytoscape.js-navigator/a7507f067eb4c7f3c11ec298992ec0c578b8c175/cytoscape-navigator.js"></script>
 </head>
 <style>
     #cy {

@@ -306,6 +306,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "multipipe"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18e89ede1cfd130755b3f720e3db8b7f75ac190e2cc83246c135b7355fc4a94f"
+
+[[package]]
 name = "num-derive"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -464,6 +470,7 @@ dependencies = [
  "displaydoc",
  "glob",
  "log",
+ "multipipe",
  "num-derive",
  "num-traits",
  "pretty_env_logger",

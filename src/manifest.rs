@@ -14,6 +14,7 @@ use crate::crutches::FlattenResult;
 
 use anyhow::{anyhow, Context};
 use glob::glob;
+use multipipe::Pipe;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -55,13 +56,13 @@ impl Target {
 
 impl Manifest {
     pub fn parse(entry: impl AsRef<Path>) -> anyhow::Result<Manifest> {
-        let manifest_path: PathBuf =
-            [entry.as_ref(), &PathBuf::from("Cargo.toml")].iter().collect();
-        let manifest_content = std::fs::read_to_string(&manifest_path)
-            .with_context(|| format!("Cannot open {}", manifest_path.display()))?;
-        let manifest = toml::from_str(&manifest_content)
-            .with_context(|| format!("Cannot parse {}", manifest_path.display()))?;
-        Ok(manifest)
+        let path: PathBuf = [entry.as_ref(), &PathBuf::from("Cargo.toml")].iter().collect();
+
+        std::fs::read_to_string(&path)
+            .with_context(|| format!("Cannot open {}", path.display()))?
+            .pipe_ref(toml::from_str::<Self>)
+            .with_context(|| format!("Cannot parse {}", path.display()))?
+            .pipe(Ok)
     }
 
     /// Reads the [package targets] from the manifest.
@@ -175,12 +176,12 @@ impl Workspace {
         let allowed = walk_glob_members(&entry, &self.members)?.into_iter().collect::<HashSet<_>>();
         let excluded =
             walk_glob_members(&entry, &self.exclude)?.into_iter().collect::<HashSet<_>>();
-        Ok(allowed.difference(&excluded).into_iter().cloned().collect::<Vec<_>>())
+        allowed.difference(&excluded).into_iter().cloned().collect::<Vec<_>>().pipe(Ok)
     }
 }
 
 fn walk_glob_members(entry: impl AsRef<Path>, members: &[String]) -> anyhow::Result<Vec<PathBuf>> {
-    let members = members
+    members
         .iter()
         .map(|member| {
             glob(&format!("{entry}/{member}", entry = entry.as_ref().display()))
@@ -195,7 +196,6 @@ fn walk_glob_members(entry: impl AsRef<Path>, members: &[String]) -> anyhow::Res
         .collect::<anyhow::Result<Vec<_>>>()?
         .into_iter()
         .flatten()
-        .collect();
-
-    Ok(members)
+        .collect::<Vec<_>>()
+        .pipe(Ok)
 }

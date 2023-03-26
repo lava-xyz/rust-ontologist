@@ -23,6 +23,7 @@ glob = "0.3"
 rayon = "1.6"
 num-traits = "0.2"
 num-derive = "0.3"
+multipipe = "0.1"
 
 [profile.release]
 strip = true

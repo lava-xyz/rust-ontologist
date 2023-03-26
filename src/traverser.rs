@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
+use multipipe::Pipe;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use rayon::prelude::*;
@@ -51,7 +52,7 @@ pub fn traverse(
     args: &crate::cli::Args,
     manifest: &Manifest,
 ) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let packages = manifest
+    manifest
         .members(&args.proj)?
         .par_iter()
         .filter_map(|member| match traverse_member(member, args) {
@@ -63,9 +64,8 @@ pub fn traverse(
             }
         })
         .collect::<Vec<_>>()
-        .into_iter();
-
-    Ok(packages)
+        .into_iter()
+        .pipe(Ok)
 }
 
 // Traverses a workspace member.
@@ -138,9 +138,7 @@ fn open_file(Ctx { dir, module_name, .. }: &Ctx) -> anyhow::Result<(std::fs::Fil
 }
 
 fn read_parse_tree(file: &mut std::fs::File) -> anyhow::Result<syn::File> {
-    let content = std::io::read_to_string(file)?;
-    let parse_tree = syn::parse_file(&content)?;
-    Ok(parse_tree)
+    std::io::read_to_string(file)?.pipe_ref(syn::parse_file)?.pipe(Ok)
 }
 
 fn traverse_item_vec(
@@ -250,7 +248,7 @@ fn traverse_item_mod(ctx: &Ctx, item: syn::ItemMod) -> anyhow::Result<Option<Mod
 }
 
 fn traverse_item_use(ctx: &Ctx, item: &syn::ItemUse) -> anyhow::Result<Vec<String>> {
-    let deps = syn_util::flatten_use_tree(&item.tree)
+    syn_util::flatten_use_tree(&item.tree)
         .into_iter()
         .filter_map(|path| {
             let mut segments = path.segments.into_iter().collect::<Vec<_>>();
@@ -273,7 +271,6 @@ fn traverse_item_use(ctx: &Ctx, item: &syn::ItemUse) -> anyhow::Result<Vec<Strin
 
             None
         })
-        .collect();
-
-    Ok(deps)
+        .collect::<Vec<_>>()
+        .pipe(Ok)
 }

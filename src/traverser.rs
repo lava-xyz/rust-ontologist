@@ -218,7 +218,7 @@ fn traverse_item(
         }
         syn::Item::Use(item) => {
             let item = syn::ItemUse { attrs: vec![], ..item };
-            if !ctx.args.disable_edges {
+            if ctx.args.enable_edges {
                 deps.append(&mut traverse_item_use(ctx, &item)?)
             };
             acc.uses.push(Use { repr: item.pretty_print() });

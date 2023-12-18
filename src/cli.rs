@@ -12,7 +12,7 @@ pub struct Args {
     #[arg(short, long, default_value = "codebase-dump.json")]
     pub output: String,
 
-    /// Disable edges in the output dump.
+    /// Enable edges in the output dump (experimental).
     #[arg(long, default_value = "false")]
-    pub disable_edges: bool,
+    pub enable_edges: bool,
 }

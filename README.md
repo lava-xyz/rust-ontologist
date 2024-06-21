@@ -19,3 +19,10 @@ Then just open your browser window at `http://localhost/index.html`:
 ```
 $ ./scripts/open.sh
 ```
+
+## TODOs
+
+ - Implement various code quality metrics based on graph manipulation.
+ - Automatically suggest changes that are likely to improve a project's architecture.
+ - Integrate with Git and GitHub: add a UI for commits, issues, PRs, show exact code locations of items, etc.
+ - Experiment with nicer-looking but fast UI.

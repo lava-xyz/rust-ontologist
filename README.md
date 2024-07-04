@@ -59,6 +59,14 @@ To enable coloured edges, provide the flag `--enable-edges`. Note that not all m
 
 Just fork the repository, work in your own branch, and open a pull request on `master`. When submitting changes, please prefer rebasing the branch to keep the commit history as clean as possible.
 
+## Release procedure
+
+ 1. Update the `version` field in `Cargo.toml`.
+ 1. Update `CHANGELOG.md`.
+ 1. Release the project in [GitHub Releases].
+
+[GitHub Releases]: https://github.com/lava-xyz/rust-ontologist/releases
+
 ## TODOs
 
  - Think about packaging `rust-ontologist` on crates.io. We have this `index.html` file, what to do with it?

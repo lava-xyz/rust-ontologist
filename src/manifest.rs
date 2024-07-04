@@ -31,7 +31,7 @@ pub struct Package {
 
 #[derive(Debug, Deserialize)]
 pub struct Lib {
-    pub name: Option<String>,
+    pub _name: Option<String>,
     pub path: Option<String>,
 }
 

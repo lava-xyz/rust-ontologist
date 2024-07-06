@@ -19,13 +19,13 @@ Run the following command to generate a _project structure dump_ in JSON:
 $ cargo run -- -p <your-cargo-project>
 ```
 
-Run a static server on port 80 (make sure `http-server` is installed: `npm install http-server`):
+Run a static server on port 8000:
 
 ```
-$ sudo http-server . -p 80 --cors
+$ python -m http.server 8000
 ```
 
-Finally, open http://localhost/index.html and see the result!
+Finally, open `http://localhost:8000/index.html` and see the result!
 
 ## Gallery
 

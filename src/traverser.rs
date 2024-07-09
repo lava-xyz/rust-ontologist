@@ -19,7 +19,7 @@ use crate::{
 #[derive(Clone)]
 struct Ctx<'a> {
     // Command-line options.
-    args: &'a crate::cli::Args,
+    args: &'a crate::cli::GlobalOpts,
     // The name of the containing package.
     package_name: String,
     // The name of the containing crate.
@@ -32,7 +32,7 @@ struct Ctx<'a> {
 
 impl<'a> Ctx<'a> {
     fn new(
-        args: &'a crate::cli::Args,
+        args: &'a crate::cli::GlobalOpts,
         dir: impl Into<PathBuf>,
         module_name: impl Into<String>,
         package_name: impl Into<String>,
@@ -49,7 +49,7 @@ impl<'a> Ctx<'a> {
 }
 
 pub fn traverse(
-    args: &crate::cli::Args,
+    args: &crate::cli::GlobalOpts,
     manifest: &Manifest,
 ) -> anyhow::Result<impl Iterator<Item = Package>> {
     manifest
@@ -69,7 +69,7 @@ pub fn traverse(
 }
 
 // Traverses a workspace member.
-fn traverse_member(member: &PathBuf, args: &crate::cli::Args) -> anyhow::Result<Package> {
+fn traverse_member(member: &PathBuf, args: &crate::cli::GlobalOpts) -> anyhow::Result<Package> {
     let member_display = member.display();
     log::trace!("Traversing member {member_display}.");
 

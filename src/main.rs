@@ -5,34 +5,50 @@ mod manifest;
 mod output;
 mod syn_util;
 mod traverser;
-#[cfg(feature = "web_server")]
 mod web_server;
 
+use crate::cli::App;
+use crate::manifest::Manifest;
 use clap::Parser;
 use output::cytoscape;
 
-use crate::manifest::Manifest;
-
 fn main() -> anyhow::Result<()> {
-    let args = cli::Args::parse();
     pretty_env_logger::init();
 
-    let manifest = Manifest::parse(&args.proj)?;
-
-    let ir = traverser::traverse(&args, &manifest)?;
-    let cytoscape_repr = cytoscape::from_ir(ir);
-    std::fs::write(
-        &args.output,
-        serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
-    )?;
-    log::info!("The codebase is successfully dumped to {}.", args.output);
-
-    #[cfg(feature = "web_server")]
-    if args.spawn_server {
-        log::info!("Server starting at port :{}", args.server_port);
-        web_server::serve(args.server_port);
-        log::info!("Shutting down server");
+    let args = App::parse();
+    match args.command {
+        cli::Command::Dump(opts) => {
+            let manifest = Manifest::parse(&args.global_opts.proj)?;
+            let ir = traverser::traverse(&args.global_opts, &manifest)?;
+            let cytoscape_repr = cytoscape::from_ir(ir);
+            std::fs::write(
+                &opts.output,
+                serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
+            )?;
+            log::info!("The codebase is successfully dumped to {}.", opts.output);
+        }
+        cli::Command::Serve(opts) => {
+            log::info!("Server starting at port :{}", opts.server_port);
+            web_server::serve(opts.server_port);
+            log::info!("Shutting down server");
+        }
     }
 
     Ok(())
 }
+
+// Command::Dump(opts) => {
+//     let manifest = Manifest::parse(&opts.proj)?;
+//     let ir = traverser::traverse(&opts, &manifest)?;
+//     let cytoscape_repr = cytoscape::from_ir(ir);
+//     std::fs::write(
+//         &opts.output,
+//         serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
+//     )?;
+//     log::info!("The codebase is successfully dumped to {}.", opts.output);
+// }
+// Command::Serve(opts) => {
+//     log::info!("Server starting at port :{}", opts.server_port);
+//     web_server::serve(opts.server_port);
+//     log::info!("Shutting down server");
+// }

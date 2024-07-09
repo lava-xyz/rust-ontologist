@@ -8,30 +8,52 @@ Navigating through a big codebase is hard, especially when you are just learning
 
 Clone the repository:
 
-```
+```sh
 $ git clone https://github.com/lava-xyz/rust-ontologist.git
 $ cd rust-ontologist
+$ cargo install --path .
 ```
 
-Run the following command to generate a _project structure dump_ in JSON:
+Make sure you have `$HOME/.cargo/bin` in your `$PATH`.
 
-```
-$ cargo run -- -p <your-cargo-project>
+### Commands available
+
+```sh
+$ rust-ontologist --help
+
+Usage: rust-ontologist [OPTIONS] <COMMAND>
+
+Commands:
+  dump
+  serve
+  help   Print this message or the help of the given subcommand(s)
+
+Options:
+  -p, --proj <PROJ>   The cargo project root directory [default: .]
+      --enable-edges  Enable edges in the output dump (experimental)
+  -h, --help          Print help
+  -V, --version       Print version
 ```
 
-Run a static server on port 8000:
+Run the `dump` command to to generate a _project structure dump_ in JSON:
 
-```
-$ python -m http.server 8000
-```
+```sh
+Usage: rust-ontologist dump [OPTIONS]
 
-Alternatively you can run an embedded static server on port :8080
-
-```
-$ cargo run --features web_server -- -p <your-cargo-project> --spawn-server [--server-port <PORT>]
+Options:
+  -o, --output <OUTPUT>  [default: codebase-dump.json]
+  -h, --help             Print help
 ```
 
-Finally, open `http://localhost:8000/index.html` and see the result!
+Run the `serve` to generate and serve the visualization on port `:8080`:
+
+```sh
+Usage: rust-ontologist serve [OPTIONS]
+
+Options:
+      --server-port <SERVER_PORT>  [default: 8080]
+  -h, --help                       Print help
+```
 
 ## Gallery
 

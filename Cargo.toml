@@ -5,6 +5,10 @@ license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+#
+
+[features]
+web_server = ["dep:rouille"]
 
 [dependencies]
 syn = { version = "2", features = ["full", "extra-traits", "printing"] }
@@ -25,6 +29,9 @@ rayon = "1.6"
 num-traits = "0.2"
 num-derive = "0.3"
 multipipe = "0.1"
+
+# Server optional dependencies
+rouille = { version = "3.6.2", default-features = false, optional = true }
 
 [profile.release]
 strip = true

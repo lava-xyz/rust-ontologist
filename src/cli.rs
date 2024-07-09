@@ -15,4 +15,8 @@ pub struct Args {
     /// Enable edges in the output dump (experimental).
     #[arg(long, default_value = "false")]
     pub enable_edges: bool,
+
+    /// Start webserver
+    #[arg(long, default_value = "false")]
+    pub spawn_server: bool,
 }

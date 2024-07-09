@@ -5,6 +5,8 @@ mod manifest;
 mod output;
 mod syn_util;
 mod traverser;
+#[cfg(feature = "web_server")]
+mod web_server;
 
 use clap::Parser;
 use output::cytoscape;
@@ -24,5 +26,13 @@ fn main() -> anyhow::Result<()> {
         serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
     )?;
     log::info!("The codebase is successfully dumped to {}.", args.output);
+
+    #[cfg(feature = "web_server")]
+    if args.spawn_server {
+        log::info!("Server starting at port :8080");
+        web_server::serve();
+        log::info!("Shutting down server");
+    }
+
     Ok(())
 }

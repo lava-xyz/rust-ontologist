@@ -4,8 +4,8 @@ use rouille::router;
 
 const INDEX: &str = include_str!("../index.html");
 
-pub fn serve() {
-    rouille::start_server("127.0.0.1:8080", move |request| {
+pub fn serve(server_port: u32) {
+    rouille::start_server(format!("127.0.0.1:{}", server_port), move |request| {
         let content = fs::read_to_string("codebase-dump.json").expect("file to exist");
         router!(request,
             (GET) ["/"] => {

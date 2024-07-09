@@ -29,8 +29,8 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "web_server")]
     if args.spawn_server {
-        log::info!("Server starting at port :8080");
-        web_server::serve();
+        log::info!("Server starting at port :{}", args.server_port);
+        web_server::serve(args.server_port);
         log::info!("Shutting down server");
     }
 

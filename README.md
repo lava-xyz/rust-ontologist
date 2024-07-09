@@ -25,6 +25,12 @@ Run a static server on port 8000:
 $ python -m http.server 8000
 ```
 
+Alternatively you can run an embedded static server on port :8080
+
+```
+$ cargo run --features web_server -- -p <your-cargo-project> --spawn-server [--server-port <PORT>]
+```
+
 Finally, open `http://localhost:8000/index.html` and see the result!
 
 ## Gallery

@@ -17,6 +17,11 @@ pub struct Args {
     pub enable_edges: bool,
 
     /// Start webserver
+    #[cfg(feature = "web_server")]
     #[arg(long, default_value = "false")]
     pub spawn_server: bool,
+
+    #[cfg(feature = "web_server")]
+    #[arg(long, default_value = "8080")]
+    pub server_port: u32,
 }

@@ -36,19 +36,3 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-// Command::Dump(opts) => {
-//     let manifest = Manifest::parse(&opts.proj)?;
-//     let ir = traverser::traverse(&opts, &manifest)?;
-//     let cytoscape_repr = cytoscape::from_ir(ir);
-//     std::fs::write(
-//         &opts.output,
-//         serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
-//     )?;
-//     log::info!("The codebase is successfully dumped to {}.", opts.output);
-// }
-// Command::Serve(opts) => {
-//     log::info!("Server starting at port :{}", opts.server_port);
-//     web_server::serve(opts.server_port);
-//     log::info!("Shutting down server");
-// }

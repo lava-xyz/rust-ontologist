@@ -16,7 +16,9 @@ pub struct App {
 
 #[derive(Debug, Subcommand, Clone)]
 pub enum Command {
+    /// Generate a project structure dump in JSON
     Dump(DumpOptions),
+    /// Generate and serve the visualization
     Serve(ServeOptions),
 }
 

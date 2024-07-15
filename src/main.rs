@@ -4,25 +4,44 @@ mod ir;
 mod manifest;
 mod output;
 mod syn_util;
+mod template;
 mod traverser;
+mod web_server;
 
+use crate::cli::App;
+use crate::manifest::Manifest;
 use clap::Parser;
 use output::cytoscape;
 
-use crate::manifest::Manifest;
-
 fn main() -> anyhow::Result<()> {
-    let args = cli::Args::parse();
     pretty_env_logger::init();
 
-    let manifest = Manifest::parse(&args.proj)?;
+    let args = App::parse();
 
-    let ir = traverser::traverse(&args, &manifest)?;
+    let manifest = Manifest::parse(&args.global_opts.proj)?;
+    let ir = traverser::traverse(&args.global_opts, &manifest)?;
     let cytoscape_repr = cytoscape::from_ir(ir);
-    std::fs::write(
-        &args.output,
-        serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON"),
-    )?;
-    log::info!("The codebase is successfully dumped to {}.", args.output);
+    let payload =
+        serde_json::to_string_pretty(&cytoscape_repr).expect("Failed to pretty-print JSON");
+
+    match args.command {
+        cli::Command::Dump(opts) => {
+            std::fs::write(&opts.output, payload)?;
+            log::info!("The codebase is successfully dumped to {}.", opts.output);
+        }
+        cli::Command::Serve(opts) => {
+            log::info!("Listening on port :{}", opts.server_port);
+
+            let data = template::render_index(
+                manifest.package.expect("package name").name,
+                &cytoscape_repr,
+            )?;
+
+            web_server::serve(data, opts.server_port);
+
+            log::info!("Shutting down server");
+        }
+    }
+
     Ok(())
 }
